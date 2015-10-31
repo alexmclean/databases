@@ -1,5 +1,4 @@
 var db = require('../db');
-var Promise = require('bluebird')
 
 db.connect(function(err){
   if(!err) {
@@ -26,53 +25,31 @@ module.exports = {
         callback(results);
       }); 
     }, // a function which produces all the messages
-    post: function (body) {
-      var queryAsync = Promise.promisify(db.query);
-      var messageObj = {};
+    post: function (username, roomname, message) {
 
-      searchUser(body.username)
-        .then(function(user) {
-          var data = user;
-          if(data.length === 0){
-            return queryAsync("INSERT into " + tables[content] + " SET ?", obj, function(err, result) {
-              return result.insertId;
-            });
-          } else {
-            return data[0].uID;
-          }
-        })
-        .then(function(uID){
-          var data = {
-            uID: uID
-          };
+      // "SELECT uID, rID from messages m INNER JOIN users u ON m.userID = u.uID INNER JOIN rooms r ON m.roomID = r.rID"
+      db.query("INSERT ignore into users (username) values (?)", [username], function(err, results) {
+        if(err) {
+          console.log('user Error')
+        }    
+       
+          db.query("INSERT ignore into rooms (roomname) values (?)", [roomname], function(err, results) {
+            if(err) {
+              console.log(' room Error')
+            }
+        
+            var query = "INSERT into messages (userID, roomID, message) values ((SELECT uID from users WHERE username = \'" + username + "\'), (SELECT rID from rooms WHERE roomname = \'" + roomname + "\'), \'" + message + "\')";
 
-          searchRoom(body.roomname)
-        })
-
-
-        //   var data = [result]
-        //   var content = key === 0 ? body.username : body.roomname;
-        //   var paramKey = key === 0 ? 'username' : 'roomname';
-        //   var obj = {};
-        //   obj[paramKey] = content;
-
-        //   if(result.length === 0) {
-        //     return queryAsync("INSERT into " + tables[content] + " SET ?", obj, function(err, result) {
-        //         return result.insertId
-        //     });
-        //   } else {
-        //     messageObj[content] = result[0];
-        //   }          
-        // })
-      
-      var ourParams = {msgID:1,userID:5, roomID:3, message: body.message};
-      var query = "INSERT into " + tables.messageTable + " SET ?";
-      db.query(query, ourParams, function(err, results){
-        console.log('results', results);
-        console.log(err);
-      }); 
-    } // a function which can be used to insert a message into the database
-  },
+            db.query(query, function(err, results) {
+              if(err) {
+                console.log('...Error', err)
+              }
+              console.log('posted!')
+            })
+          })
+      }) // a function which can be used to insert a message into the database
+  }
+},
 
   users: {
     // Ditto as above.
@@ -91,26 +68,3 @@ module.exports = {
   }
 };
 
-var searchUser = function(username) {
-  return new Promise(function(resolve, reject) {
-    db.query("SELECT uID from users WHERE username LIKE ?", {username: username}, function(err, results) {
-      if(err) {
-        reject(err)
-      }
-      resolve(results);
-    });
-  });
-};
-
-var searchRoom = function(roomname) {
-  return new Promise(function(resolve, reject){
-    db.query("SELECT rID from rooms WHERE roomname LIKE ?", {roomname: roomname}, function(err, results) {
-      if(err) {
-        reject(err);
-      }
-      resolve(results);
-    });
-  });
-};
-
-console.log(searchRoom('lobby'))
