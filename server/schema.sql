@@ -10,12 +10,12 @@ CREATE TABLE messages (
 );
 
 CREATE TABLE rooms (
-  rID integer PRIMARY KEY,
+  rID integer PRIMARY KEY AUTO_INCREMENT,
   roomname varchar(25)
 );
 
 CREATE TABLE users (
-  uID integer PRIMARY KEY,
+  uID integer PRIMARY KEY AUTO_INCREMENT,
   username varchar(20)
 );
 
