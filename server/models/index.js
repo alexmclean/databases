@@ -18,7 +18,9 @@ var tables = {
 module.exports = {
   messages: {
     get: function (req, res, callback) {
-      var query = "SELECT * FROM " + tables.messageTable;
+      var query = "SELECT u.username, r.roomname, m.message, m.msgID from messages m \
+                    INNER JOIN users u ON m.userID = u.uID \
+                    INNER JOIN rooms r ON m.roomID = r.rID";
       db.query(query, function(err, results){
         console.log('hello', results);
         console.log(err);
@@ -26,8 +28,6 @@ module.exports = {
       }); 
     }, // a function which produces all the messages
     post: function (username, roomname, message) {
-
-      // "SELECT uID, rID from messages m INNER JOIN users u ON m.userID = u.uID INNER JOIN rooms r ON m.roomID = r.rID"
       db.query("INSERT ignore into users (username) values (?)", [username], function(err, results) {
         if(err) {
           console.log('user Error')

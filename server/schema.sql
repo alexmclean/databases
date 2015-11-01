@@ -21,17 +21,3 @@ CREATE TABLE messages (
   FOREIGN KEY (userID) REFERENCES users(uID)
 );
 /* Create other tables and define schemas for them here! */
-
-
-
-
-/*  Execute this file from the command line by typing:
- *    mysql -u root < server/schema.sql
- *  CONSTRAINT fk_room_id
-    FOREIGN KEY (roomID)
-    REFERENCES rooms(rID),
-  CONSTRAINT fk_user_id
-    FOREIGN KEY (userID)
-    REFERENCES users(uID)
- *  to create the database and the tables.*/
-

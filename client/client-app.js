@@ -25,7 +25,7 @@ var app = {
     app.$roomSelect.on('change', app.saveRoom);
 
     // Fetch previous messages
-    app.startSpinner();
+ 
     app.fetch(false);
 
     // Poll for new messages
@@ -33,7 +33,6 @@ var app = {
   },
 
   send: function(data) {
-    app.startSpinner();
     // Clear messages input
     app.$message.val('');
 
@@ -45,6 +44,7 @@ var app = {
       contentType: 'application/json',
       success: function (data) {
         // Trigger a fetch to update the messages, pass true to animate
+        console.log(data)
         app.fetch();
       },
       error: function (data) {
@@ -58,25 +58,27 @@ var app = {
       url: app.server,
       type: 'GET',
       contentType: 'application/json',
-      data: { order: '-createdAt'},
       success: function(data) {
         // Don't bother if we have nothing to work with
+        console.log('data', data)
         if (!data.results || !data.results.length) { return; }
 
         // Get the last message
         var mostRecentMessage = data.results[data.results.length-1];
+
+        console.log(mostRecentMessage);
         var displayedRoom = $('.chat span').first().data('roomname');
-        app.stopSpinner();
         // Only bother updating the DOM if we have a new message
-        if (mostRecentMessage.objectId !== app.lastMessageId || app.roomname !== displayedRoom) {
+        if (mostRecentMessage.msgID !== app.lastMessageId || app.roomname !== displayedRoom) {
           // Update the UI with the fetched rooms
+          console.log('insidddde')
           app.populateRooms(data.results);
 
           // Update the UI with the fetched messages
           app.populateMessages(data.results, animate);
 
           // Store the ID of the most recent message
-          app.lastMessageId = mostRecentMessage.objectId;
+          app.lastMessageId = mostRecentMessage.msgID;
         }
       },
       error: function(data) {
@@ -93,7 +95,6 @@ var app = {
     // Clear existing messages
 
     app.clearMessages();
-    app.stopSpinner();
     if (Array.isArray(results)) {
       // Add all fetched messages
       results.forEach(app.addMessage);
@@ -159,7 +160,7 @@ var app = {
         $username.addClass('friend');
 
       var $message = $('<br><span/>');
-      $message.text(data.text).appendTo($chat);
+      $message.text(data.message).appendTo($chat);
 
       // Add the message to the UI
       app.$chats.append($chat);
@@ -201,7 +202,6 @@ var app = {
       }
     }
     else {
-      app.startSpinner();
       // Store as undefined for empty names
       app.roomname = app.$roomSelect.val();
 
@@ -213,7 +213,7 @@ var app = {
   handleSubmit: function(evt) {
     var message = {
       username: app.username,
-      text: app.$message.val(),
+      message: app.$message.val(),
       roomname: app.roomname || 'lobby'
     };
 
@@ -221,15 +221,5 @@ var app = {
 
     // Stop the form from submitting
     evt.preventDefault();
-  },
-
-  startSpinner: function(){
-    $('.spinner img').show();
-    $('form input[type=submit]').attr('disabled', "true");
-  },
-
-  stopSpinner: function(){
-    $('.spinner img').fadeOut('fast');
-    $('form input[type=submit]').attr('disabled', null);
   }
 };
